@@ -1,0 +1,485 @@
+---
+title: "Project_Group_03"
+author: "PS_2021_236_T.N.N.HENDAWITHARANA"
+date: "2025-06-24"
+output: word_document
+---
+```{r}
+#Import dataset into R-studio
+library(readxl)
+
+Employee_Data <- read_xlsx("C:\\Sulakshana\\3rdyear_1stsem\\mine\\STAT31631_Statistical Modeling\\project\\employee_attrition_dataset_10000(1).xlsx")
+head(Employee_Data)
+```
+
+
+```{r}
+#Identify missing values
+missing_count <- sum(is.na(Employee_Data))
+missing_count
+```
+
+
+```{r}
+#Remove the Employee_ID,Performance_Rating,Perform columns from the dataset
+Employee_Data$Employee_ID <- NULL
+Employee_Data$Performance_Rating <- NULL
+Employee_Data$Perform <- NULL
+head(Employee_Data)
+```
+
+
+
+
+```{r}
+str(Employee_Data)
+```
+
+
+```{r}
+#Convert charctor variable into factor type
+Employee_Data$Gender <- as.factor(Employee_Data$Gender)
+Employee_Data$Performance <- as.factor(Employee_Data$Performance)
+Employee_Data$Marital_Status <- as.factor(Employee_Data$Marital_Status)
+Employee_Data$Department <- as.factor(Employee_Data$Department)
+Employee_Data$Job_Role <- as.factor(Employee_Data$Job_Role)
+Employee_Data$Overtime <- as.factor(Employee_Data$Overtime)
+Employee_Data$Attrition<- as.factor(Employee_Data$Attrition)
+
+str(Employee_Data)
+```
+```{r}
+table(Employee_Data$Performance)
+
+```
+
+
+```{r}
+#summary(Employee_Data)
+summary(Employee_Data)
+```
+
+
+```{r}
+#Draw boxplot for the find outliers
+boxplot(Employee_Data$Age, main = "Age", sub = paste("outliers:", boxplot.stats(Employee_Data$Age)$out))
+
+boxplot(Employee_Data$Job_Level, main = "Job_Level", sub = paste("outliers:", boxplot.stats(Employee_Data$Job_Level)$out))
+
+boxplot(Employee_Data$Monthly_Income, main = "Monthly_Income", sub = paste("outliers:", boxplot.stats(Employee_Data$Monthly_Income)$out))
+
+boxplot(Employee_Data$Hourly_Rate, main = "Hourly_Rate", sub = paste("outliers:", boxplot.stats(Employee_Data$Hourly_Rate)$out))
+
+boxplot(Employee_Data$Years_at_Company, main = "Years_at_Company", sub = paste("outliers:", boxplot.stats(Employee_Data$Years_at_Company)$out))
+
+boxplot(Employee_Data$Years_in_Current_Role, main = "Years_in_Current_Role", sub = paste("outliers:", boxplot.stats(Employee_Data$Years_in_Current_Role)$out))
+
+boxplot(Employee_Data$Years_Since_Last_Promotion, main = "Years_Since_Last_Promotion", sub = paste("outliers:", boxplot.stats(Employee_Data$Years_Since_Last_Promotion)$out))
+
+boxplot(Employee_Data$Work_Life_Balance, main = "Work_Life_Balance", sub = paste("outliers:", boxplot.stats(Employee_Data$Work_Life_Balance)$out))
+
+boxplot(Employee_Data$Job_Satisfaction, main = "Job_Satisfaction", sub = paste("outliers:", boxplot.stats(Employee_Data$Job_Satisfaction)$out))
+
+boxplot(Employee_Data$Training_Hours_Last_Year, main = "Training_Hours_Last_Year", sub = paste("outliers:", boxplot.stats(Employee_Data$Training_Hours_Last_Year)$out))
+
+boxplot(Employee_Data$Project_Count, main = "Project_Count", sub = paste("outliers:", boxplot.stats(Employee_Data$Project_Count)$out))
+
+boxplot(Employee_Data$Average_Hours_Worked_Per_Week, main = "Avg_Hours_Worked", sub = paste("outliers:", boxplot.stats(Employee_Data$Average_Hours_Worked_Per_Week)$out))
+
+boxplot(Employee_Data$Absenteeism, main = "Absenteeism", sub = paste("outliers:", boxplot.stats(Employee_Data$Absenteeism)$out))
+
+boxplot(Employee_Data$Work_Environment_Satisfaction, main = "Work_Env_Sat", sub = paste("outliers:", boxplot.stats(Employee_Data$Work_Environment_Satisfaction)$out))
+
+boxplot(Employee_Data$Relationship_with_Manager, main = "Rel_with_Manager", sub = paste("outliers:", boxplot.stats(Employee_Data$Relationship_with_Manager)$out))
+
+boxplot(Employee_Data$Job_Involvement, main = "Job_Involvement", sub = paste("outliers:", boxplot.stats(Employee_Data$Job_Involvement)$out))
+
+boxplot(Employee_Data$Distance_From_Home, main = "Distance_From_Home", sub = paste("outliers:", boxplot.stats(Employee_Data$Distance_From_Home)$out))
+
+boxplot(Employee_Data$Number_of_Companies_Worked, main = "Companies_Worked", sub = paste("outliers:", boxplot.stats(Employee_Data$Number_of_Companies_Worked)$out))
+```
+
+
+```{r}
+# Pick numeric columns only
+numeric_cols <- sapply(Employee_Data, is.numeric)
+
+# Subset numeric data
+numeric_data <- Employee_Data[, numeric_cols]
+
+# Calculate mean and standard deviation for each numeric column
+means <- sapply(numeric_data, mean)
+sds <- sapply(numeric_data, sd)
+
+# Print means and standard deviations
+print(data.frame(variable = names(means), mean = means, sd = sds))
+```
+
+```{r}
+# draw Histograms
+# Select numeric columns
+numeric_cols <- sapply(Employee_Data, is.numeric)
+
+# Set up plotting window: adjust rows and cols based on number of variables
+num_vars <- sum(numeric_cols)
+rows <- ceiling(sqrt(num_vars))
+cols <- ceiling(num_vars / rows)
+
+par(mfrow = c(rows, cols), mar = c(3, 3, 2, 1))  # margins: bottom, left, top, right
+
+# Loop to plot histograms for each numeric variable
+for (var_name in names(Employee_Data)[numeric_cols]) {
+  hist(Employee_Data[[var_name]], 
+       main = paste("Histogram for", var_name), 
+       col = "blue", 
+       xlab = var_name)
+}
+
+# Reset plotting layout to default
+par(mfrow = c(1, 1))
+```
+
+
+```{r}
+library(e1071)
+continuous_vars<- c("Job_Level","Monthly_Income","Hourly_Rate", "Years_in_Current_Role","Years_Since_Last_Promotion","Work_Life_Balance","Job_Satisfaction","Training_Hours_Last_Year","Project_Count","Average_Hours_Worked_Per_Week","Absenteeism","Work_Environment_Satisfaction","Relationship_with_Manager","Job_Involvement","Distance_From_Home","Number_of_Companies_Worked")
+
+# Calculate skewness for each variable
+skew_values <- sapply(Employee_Data[continuous_vars], skewness, na.rm = TRUE)
+
+# Print skewness values
+data.frame(print(skew_values))
+
+#all are closer to 0 ,so no need to apply transformation(fixed skewness)
+
+```
+```{r}
+# ---------------------- CATEGORICAL VARIABLES ------------------------
+
+# Gender
+chisq_gender <- chisq.test(table(Employee_Data$Performance, Employee_Data$Gender))
+print(chisq_gender)
+
+# Marital_Status
+chisq_MaritalStatus <- chisq.test(table(Employee_Data$Performance, Employee_Data$Marital_Status))
+print(chisq_MaritalStatus)
+
+# Department
+chisq_Depaertment <- chisq.test(table(Employee_Data$Performance, Employee_Data$Department))
+print(chisq_Depaertment)
+
+# Job_Role
+chisq_JobRole <- chisq.test(table(Employee_Data$Performance, Employee_Data$Job_Role))
+print(chisq_JobRole)
+
+# Job_Level (numeric, but ordinal, so still categorical)
+chisq_JobLevel <- chisq.test(table(Employee_Data$Performance, Employee_Data$Job_Level))
+print(chisq_JobLevel)
+
+# Work_Life_Balance
+chisq_WorklifeBalance <- chisq.test(table(Employee_Data$Performance, Employee_Data$Work_Life_Balance))
+print(chisq_WorklifeBalance)
+
+# Job_Satisfaction
+chisq_Jobsatisfaction <- chisq.test(table(Employee_Data$Performance, Employee_Data$Job_Satisfaction))
+print(chisq_Jobsatisfaction)
+
+# Overtime
+chisq_Overtime <- chisq.test(table(Employee_Data$Performance, Employee_Data$Overtime))
+print(chisq_Overtime)
+
+# Work_Environment_Satisfaction
+chisq_EnviromentSatisfaction <- chisq.test(table(Employee_Data$Performance, Employee_Data$Work_Environment_Satisfaction))
+print(chisq_EnviromentSatisfaction)
+
+# Relationship_with_Manager
+chisq_Relationwith_Manager <- chisq.test(table(Employee_Data$Performance, Employee_Data$Relationship_with_Manager))
+print(chisq_Relationwith_Manager)
+
+# Job_Involvement
+chisq_JobInvolvement <- chisq.test(table(Employee_Data$Performance, Employee_Data$Job_Involvement))
+print(chisq_JobInvolvement)
+
+# Attrition
+chisq_Attrition <- chisq.test(table(Employee_Data$Performance, Employee_Data$Attrition))
+print(chisq_Attrition)
+
+
+```
+
+
+```{r}
+library(dplyr)
+set.seed(250)
+split_ratio <- 0.8
+df1_bound <- ceiling(nrow(Employee_Data) * split_ratio)
+
+train1 <- Employee_Data %>% slice_sample(n = df1_bound, replace = FALSE)
+head(train1)
+test1 <- Employee_Data[-as.numeric(rownames(train1)),]
+head(test1)
+
+```
+
+```{r}
+#Univariable logistic regression for each predictor
+uni_Age <- glm(Performance ~ Age, data = train1, family = binomial)
+summary(uni_Age)
+
+uni_Job_Level <- glm(Performance ~ Job_Level, data = train1, family = binomial)
+summary(uni_Job_Level)
+
+uni_Monthly_Income <- glm(Performance ~ Monthly_Income, data = train1, family = binomial)
+summary(uni_Monthly_Income)
+
+uni_Hourly_Rate <- glm(Performance ~ Hourly_Rate, data = train1, family = binomial)
+summary(uni_Hourly_Rate)
+
+uni_Years_at_Company <- glm(Performance ~ Years_at_Company, data = train1, family = binomial)
+summary(uni_Years_at_Company)
+
+uni_Years_in_Current_Role <- glm(Performance ~ Years_in_Current_Role, data = train1, family = binomial)
+summary(uni_Years_in_Current_Role)
+
+uni_Years_Since_Last_Promotion <- glm(Performance ~ Years_Since_Last_Promotion, data = train1, family = binomial)
+summary(uni_Years_Since_Last_Promotion)
+
+uni_Work_Life_Balance <- glm(Performance ~ Work_Life_Balance, data = train1, family = binomial)
+summary(uni_Work_Life_Balance)
+
+uni_Job_Satisfaction <- glm(Performance ~ Job_Satisfaction, data = train1, family = binomial)
+summary(uni_Job_Satisfaction)
+
+uni_Training_Hours_Last_Year <- glm(Performance ~ Training_Hours_Last_Year, data = train1, family = binomial)
+summary(uni_Training_Hours_Last_Year)
+
+uni_Project_Count <- glm(Performance ~ Project_Count, data = train1, family = binomial)
+summary(uni_Project_Count)
+
+uni_Average_Hours_Worked_Per_Week <- glm(Performance ~ Average_Hours_Worked_Per_Week, data = train1, family = binomial)
+summary(uni_Average_Hours_Worked_Per_Week)
+
+uni_Absenteeism <- glm(Performance ~ Absenteeism, data = train1, family = binomial)
+summary(uni_Absenteeism)
+
+uni_Work_Environment_Satisfaction <- glm(Performance ~ Work_Environment_Satisfaction, data = train1, family = binomial)
+summary(uni_Work_Environment_Satisfaction)
+
+uni_Relationship_with_Manager <- glm(Performance ~ Relationship_with_Manager, data = train1, family = binomial)
+summary(uni_Relationship_with_Manager)
+
+uni_Job_Involvement <- glm(Performance ~ Job_Involvement, data = train1, family = binomial)
+summary(uni_Job_Involvement)
+
+uni_Distance_From_Home <- glm(Performance ~ Distance_From_Home, data = train1, family = binomial)
+summary(uni_Distance_From_Home)
+
+uni_Number_of_Companies_Worked <- glm(Performance ~ Number_of_Companies_Worked, data = train1, family = binomial)
+summary(uni_Number_of_Companies_Worked)
+
+```
+
+
+
+```{r}
+#Fitting binary logistic regression using "glm" function
+
+data<-train1
+
+model1<-glm(Performance ~.,data=data,family="binomial"(link=logit))
+
+summary(model1)
+
+```
+```{r}
+library(car)
+
+data.frame(print(vif(model1)))
+```
+
+```{r}
+
+installed.packages("leaps")
+
+library(leaps)
+
+regfit_full <- regsubsets(Performance~ . , data)
+summary(regfit_full)
+
+
+
+```
+
+
+```{r}
+regfit_full <- regsubsets(Performance~. , data = data, nvmax = 23)
+reg_summary <- summary( regfit_full)
+reg_summary
+
+```
+```{r}
+names(reg_summary)
+```
+```{r}
+data.frame((reg_summary$adjr2), (reg_summary$cp),(reg_summary$bic),(reg_summary$rss))
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(reg_summary$rss, xlab = "Number of Variables", ylab = "RSS", type = "l")
+RSs_min<-which.min(reg_summary$rss)
+points(RSs_min,reg_summary$rss[RSs_min],col="blue",cex = 2, pch = 20)
+abline(v=RSs_min)
+
+
+```
+```{r}
+plot(reg_summary$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+adjr2_max <- which.max(reg_summary$adjr2)
+points(adjr2_max, reg_summary$adjr2[adjr2_max], col = "red", cex = 2, pch = 20)
+abline(v=adjr2_max)
+
+```
+```{r}
+par(mfrow = c(1, 2))
+plot(reg_summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+cp_min <- which.min(reg_summary$cp)
+points(cp_min, reg_summary$cp[cp_min], col = "red", cex = 2, pch = 20)
+
+bic_min <- which.min(reg_summary$bic)
+plot(reg_summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+points(bic_min, reg_summary$bic[bic_min], col = "red", cex = 2, pch = 20)
+
+```
+```{r}
+cp_min <- which.min(reg_summary$cp)
+cp_min
+
+```
+```{r}
+adjr2_min <- which.min(reg_summary$cp)
+adjr2_min
+
+```
+```{r}
+data.frame(coef(regfit_full,6))
+```
+
+
+
+
+```{r}
+
+
+
+model_best_subset <- glm(Performance ~ Department + Training_Hours_Last_Year + Work_Environment_Satisfaction +Relationship_with_Manager + Job_Involvement + Attrition, data = data, family = binomial(link = "logit"))
+
+summary(model_best_subset)
+
+
+```
+```{r}
+Significant_model <- glm(Performance ~ Training_Hours_Last_Year +
+                         Work_Environment_Satisfaction +
+                         Job_Involvement,
+                         data = train1, family = binomial(link = "logit"))
+summary(Significant_model)
+
+
+
+```
+```{r}
+model_interactions <- glm(Performance ~ Training_Hours_Last_Year +
+                          Work_Environment_Satisfaction * Job_Involvement,
+                          data = train1, family = binomial)
+
+summary(model_interactions)
+
+```
+
+
+
+
+```{r}
+library(pROC)
+
+# Predict on test set
+prob_best_subset_test <- predict(Significant_model, newdata = test1, type = "response")
+prob_interaction_test <- predict(model_interactions, newdata = test1, type = "response")
+
+# Generate ROC curves
+roc_best_subset_test <- roc(test1$Performance, prob_best_subset_test)
+roc_interaction_test <- roc(test1$Performance, prob_interaction_test)
+
+# Plot
+plot(roc_best_subset_test, col = "blue", main = "ROC Curve Comparison (Test Set)")
+lines(roc_interaction_test, col = "red")
+legend("bottomright", legend = c("Significant Model", "Interaction Model"),
+       col = c("blue", "red"), lwd = 2)
+
+# Print AUCs
+auc(roc_best_subset_test)
+auc(roc_interaction_test)
+
+
+```
+
+
+
+```{r}
+library(car)
+cat("\nVariance Inflation Factors (VIF):\n")
+##
+## Variance Inflation Factors (VIF):
+#Check the multicollinearity
+print(vif(Significant_model))
+```
+
+```{r}
+data.frame(exp(coef(Significant_model)))
+```
+```{r}
+#fit <- model2$fitted 
+
+#Attrion_num<-as.numeric(as.character(Employee_Data$Attrition))
+ 
+#r <- (Employee_Data$Attrion_num - fit)/(sqrt(fit*(1-fit))) # Pearson residuals  
+#sum(r^2) # Pearson Chi-Square statistic 
+```
+
+```{r}
+library(ResourceSelection)
+#Goodness of fit
+
+#Null hypothesis (H0): The model fits the data well.
+#Alternative hypothesis (Ha): The model does not fit the data well.
+hoslem <- hoslem.test(as.numeric(train1$Performance)-1, fitted(Significant_model))
+print(hoslem)
+
+```
+
+
+
+```{r}
+#Model Evaluation
+predictions <- predict(Significant_model, newdata = test1, type = "response")
+print(predictions)
+```
+
+```{r}
+predictions_category <- ifelse(predictions >= 0.5, "1","0")
+print( predictions_category )
+```
+```{r}
+# Creating a confusion matrix (to see how well your model performed on the test set) 
+
+confusion_matrix <- table(test1$Performance, predictions_category) 
+data.frame(print(confusion_matrix))
+
+
+
+```
+
+```{r}
+accuracy <- (sum(diag(confusion_matrix))/ sum(confusion_matrix)) 
+accuracy
+```
