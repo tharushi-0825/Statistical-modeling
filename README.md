@@ -1,2 +1,3 @@
 # Statistical-modeling
-Modeling the Impact of Workplace Factors on Employee Performance
+Project Title: Modeling the Impact of Workplace Factors on Employee Performance.
+Tech Stack: R Language, R-Markdown.
